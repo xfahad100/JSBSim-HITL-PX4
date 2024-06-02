@@ -1,0 +1,42 @@
+<model name="rascal">
+    <jsbsimbridge>
+       <!-- <aircraft_directory>models/737</aircraft_directory>
+        <aircraft_model>737</aircraft_model> -->
+        <jsb_script>737_air</jsb_script>
+    </jsbsimbridge>
+    <sensors>
+        <imu>
+
+        </imu>
+        <gps>
+
+        </gps>
+        <barometer>
+
+        </barometer>
+        <magnetometer>
+        </magnetometer>
+    </sensors>
+    <actuators>
+       <channel name="rudder">
+            <index>0</index>
+            <scale>-1</scale>
+            <property>fcs/rudder-cmd-norm</property>
+        </channel>
+        <channel name="aileron">
+            <index>1</index>
+            <scale>-1</scale>
+            <property>fcs/aileron-cmd-norm</property>
+        </channel>
+        <channel name="elevator">
+            <index>2</index>
+            <scale>-1</scale>
+            <property>fcs/elevator-cmd-norm</property>
+        </channel>
+        <channel name="throttle">
+            <index>3</index>
+            <scale>1</scale>
+            <property>fcs/throttle-cmd-norm</property>
+        </channel>
+    </actuators>
+</model>

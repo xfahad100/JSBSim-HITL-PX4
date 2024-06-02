@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="utf-8"?>
+<?xml-stylesheet type="text/xsl" href="http://jsbsim.sf.net/JSBSimScript.xsl"?>
+<runscript xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:noNamespaceSchemaLocation="http://jsbsim.sf.net/JSBSimScript.xsd"
+    name="Cruise flight in 737.">
+
+  <description>
+    This script trims the aircraft at cruise altitude and mach. Some state
+    data is printed out at the completion of trimming. 
+  </description>
+
+  <use aircraft="737" initialize="reset00"/>
+  <run start="0.0" end="10000" dt="0.02">
+
+    <property value="0"> simulation/notify-time-trigger </property>
+
+    <event name="On-ground trim">
+      <description>The aircraft is trimmed on-ground.</description>
+      <condition>simulation/sim-time-sec ge 0.25</condition>
+      <set name="simulation/do_simple_trim" value="2"/> <!-- on-ground trim -->
+      <notify/>
+    </event>
+    
+ <event name="Start engine: Starter">
+      <description>The starter for both engines is turned on.</description>
+      <condition>simulation/sim-time-sec ge 0.5</condition>
+      <set name="propulsion/starter_cmd" value="1"/>
+      <notify/>
+    </event>
+
+    <event name="Start engine: Cutoff">
+      <description>Cutoff is turned off, allowing fuel to flow.</description>
+      <condition>propulsion/engine[0]/n2 ge 1.0</condition>
+      <set name="propulsion/cutoff_cmd" value="0"/>
+      <set name="fcs/throttle-cmd-norm[0]" value="0.4"/>
+      <set name="fcs/throttle-cmd-norm[1]" value="0.4"/>
+      <notify>
+        <property>propulsion/engine[0]/n2</property>
+        <property>propulsion/engine[1]/n2</property>
+        <property>propulsion/starter_cmd</property>
+        <property>propulsion/engine[0]/thrust-lbs</property>
+        <property>propulsion/engine[1]/thrust-lbs</property>
+      </notify>
+    </event>
+    
+    <event name="Set engines running / raise gear">
+      <condition> simulation/sim-time-sec ge 1.25 </condition>
+      <set name="propulsion/engine[0]/set-running" value="1"/>
+      <set name="propulsion/engine[1]/set-running" value="1"/>
+      <set name="gear/gear-cmd-norm" value="1"/>
+      <set name="gear/gear-pos-norm" value="1"/>
+            <notify>
+        <property caption="Eng[0] Thrust (lbs)">propulsion/engine[0]/thrust-lbs</property>
+        <property caption="Eng[1] Thrust (lbs)">propulsion/engine[1]/thrust-lbs</property>
+        <property caption="Gear Position .....">gear/gear-pos-norm</property>
+      </notify>
+    </event>
+    
+
+
+    <!--
+      For "do_simple_trim" (Classic trim):
+      0: Longitudinal
+      1: Full
+      2: Ground
+      3: Pullup
+      4: Custom
+      5: Turn
+      6: None
+    -->
+
+  </run>
+
+</runscript>

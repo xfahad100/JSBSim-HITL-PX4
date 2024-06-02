@@ -1,0 +1,20 @@
+<model name="rascal">
+    <jsbsimbridge>
+    <!--    <aircraft_directory>models/Rascal</aircraft_directory>
+        <aircraft_model>Rascal110-JSBSim</aircraft_model>-->
+        <jsb_script>rascal_test</jsb_script>
+    </jsbsimbridge>
+    <sensors>
+        <imu>
+        </imu>
+        <gps>
+        </gps>
+        <barometer>
+        </barometer>
+        <magnetometer>
+        </magnetometer>
+     
+    </sensors>
+    <actuators>
+    </actuators>
+</model>

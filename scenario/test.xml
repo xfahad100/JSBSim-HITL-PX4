@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<?xml-stylesheet type="text/xsl" href="http://jsbsim.sf.net/JSBSimScript.xsl"?>
+<runscript xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:noNamespaceSchemaLocation="http://jsbsim.sf.net/JSBSimScript.xsd"
+    name="Testing Rascal110">
+
+  <description>
+    test ArduPlane using Rascal110 and JSBSim
+  </description>
+
+  <use aircraft="allahuakbar" initialize="reset00"/>
+
+  <!-- we control the servos via the jsbsim console
+       interface on TCP 5124 -->
+
+ <run start="0" end="10000000" dt="0.02">
+    <!-- <property value="0"> simulation/notify-time-trigger </property>
+    
+        <event name="Reset Initial Conditions"> 
+      <condition> simulation/sim-time-sec ge 0 </condition>
+      <set name="ic/h-sl-ft" value="50"/>
+      <set name="ic/mach"    value="0.1"/>
+      <notify>
+        <property caption="Altitude ASL">ic/h-sl-ft</property>
+        <property caption="Mach .......">ic/mach</property>
+      </notify>
+    </event> -->
+
+    <event name="Trim">
+      <condition>simulation/sim-time-sec ge 0.00</condition>
+      <set name="simulation/do_simple_trim" value="2"/>
+      <notify/>
+    </event> 
+    
+    
+      <event name="Set engines running / raise gear">
+      <condition> simulation/sim-time-sec ge 0.00 </condition>
+      <set name="fcs/left-brake-cmd-norm" value="0"/>
+      <set name="fcs/right-brake-cmd-norm" value="0"/>
+            <notify>
+      
+      </notify>
+    </event>
+
+
+  </run>
+
+</runscript>
