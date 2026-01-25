@@ -200,22 +200,18 @@ void JSBSimBridge::Run() {
     // This is needed for lockstep
     _mavlink_interface->UpdateIMU(_imu_sensor->getData());
 }
-    // Send Mavlink HIL_SENSOR message
 
-    Eigen::Vector4d jsbsim_actuators = _px4comms->getActuatorsFromJSBSim();
-    _mavlink_interface->SendActuatorMsgs(jsbsim_actuators);
+    _mavlink_interface->SendOffboardSetpoint(0, 0, -2.0f);
 
+    _mavlink_interface->SetOffboardMode();
 
-  // Receive and handle actuator controls
-//  if (hil_mode_) {
-//    _mavlink_interface->pollFromGcsAndSdk();
-//  } else {
-//    _mavlink_interface->pollForMAVLinkMessages();
-//  }
-  //_mavlink_interface->pollForMAVLinkMessages();
-  //_mavlink_interface->pollFromGcsAndSdk();
     bool armState = _px4comms->getArmState();
     _mavlink_interface->SendArmedState(armState);
+
+    if(armState){
+    Eigen::Vector4d jsbsim_actuators = _px4comms->getActuatorsFromJSBSim();
+    _mavlink_interface->SendActuatorMsgs(jsbsim_actuators);
+    }
  // Eigen::VectorXd actuator_controls = _mavlink_interface->GetActuatorControls();
     Eigen::Vector3d AttitudeMAV = _mavlink_interface->GetIMU();
     Eigen::Vector3d accelMAV = _mavlink_interface->imuaccel();

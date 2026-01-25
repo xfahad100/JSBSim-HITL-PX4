@@ -147,6 +147,8 @@ class MavlinkInterface {
   void UpdateAirspeed(const SensorData::Airspeed &data);
   void UpdateIMU(const SensorData::Imu &data);
   void UpdateMag(const SensorData::Magnetometer &data);
+  void SendOffboardSetpoint(float x, float y, float z);
+  void SetOffboardMode();
   Eigen::Vector3d Getgps();
   Eigen::Vector3d Getairspeed();
   Eigen::Vector3d GetIMU();

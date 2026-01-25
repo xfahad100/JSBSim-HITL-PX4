@@ -21,6 +21,17 @@
 
 #include "mavlink_interface.h"
 
+#ifndef MAVLINK_MSG_SET_POSITION_TARGET_LOCAL_NED_IGNORE_VX
+#define MAVLINK_MSG_SET_POSITION_TARGET_LOCAL_NED_IGNORE_VX       (1<<0)
+#define MAVLINK_MSG_SET_POSITION_TARGET_LOCAL_NED_IGNORE_VY       (1<<1)
+#define MAVLINK_MSG_SET_POSITION_TARGET_LOCAL_NED_IGNORE_VZ       (1<<2)
+#define MAVLINK_MSG_SET_POSITION_TARGET_LOCAL_NED_IGNORE_AFX      (1<<3)
+#define MAVLINK_MSG_SET_POSITION_TARGET_LOCAL_NED_IGNORE_AFY      (1<<4)
+#define MAVLINK_MSG_SET_POSITION_TARGET_LOCAL_NED_IGNORE_AFZ      (1<<5)
+#define MAVLINK_MSG_SET_POSITION_TARGET_LOCAL_NED_IGNORE_YAW      (1<<6)
+#define MAVLINK_MSG_SET_POSITION_TARGET_LOCAL_NED_IGNORE_YAW_RATE (1<<7)
+#endif
+
 MavlinkInterface::MavlinkInterface()
     : received_first_actuator_(false),
       gcs_socket_fd_(0),
@@ -730,13 +741,48 @@ void MavlinkInterface::parse_buffer(const boost::system::error_code &err, std::s
         break;
       }
       case MAVLINK_MSG_ID_HEARTBEAT:
-    {
-        mavlink_heartbeat_t msghb;
-        mavlink_msg_heartbeat_decode(&massg,&msghb);
-        bool armed_ = (msghb.base_mode & MAV_MODE_FLAG_SAFETY_ARMED);
-    //std::cout << "armstate::  " << msghb.base_mode <<endl;
-        break;
-    }
+      {
+          mavlink_heartbeat_t msghb;
+          mavlink_msg_heartbeat_decode(&massg, &msghb);
+
+          // Armed state
+          bool armed_ = (msghb.base_mode & MAV_MODE_FLAG_SAFETY_ARMED);
+
+          // Only decode custom_mode if CUSTOM_MODE_ENABLED
+          if (msghb.base_mode & MAV_MODE_FLAG_CUSTOM_MODE_ENABLED)
+          {
+              // PX4 encodes main_mode in lower byte, sub_mode in next byte
+              uint8_t main_mode = msghb.custom_mode & 0xFF;
+              uint8_t sub_mode  = (msghb.custom_mode >> 8) & 0xFF;
+
+              std::string mode_str;
+
+              switch (main_mode)
+              {
+                  case 1: mode_str = "MANUAL"; break;
+                  case 2: mode_str = "ALTCTL"; break;
+                  case 3: mode_str = "POSCTL"; break;
+                  case 4: mode_str = "AUTO"; break;
+                  case 5: mode_str = "ACRO"; break;
+                  case 6: mode_str = "OFFBOARD"; break;
+                  case 7: mode_str = "STABILIZED"; break;
+                  case 8: mode_str = "RATTITUDE"; break;
+                  default: mode_str = "UNKNOWN"; break;
+              }
+
+              std::cout << "Arm: " << armed_
+                        << " | Flight Mode: " << mode_str
+                        << " | Sub-mode: " << (int)sub_mode
+                        << std::endl;
+          }
+          else
+          {
+              std::cout << "Arm: " << armed_ << " | Flight Mode: UNKNOWN" << std::endl;
+          }
+
+          break;
+      }
+
       case MAVLINK_MSG_ID_BATTERY_STATUS:
     {
         mavlink_battery_status_t battery;
@@ -881,5 +927,54 @@ void MavlinkInterface::SendArmedState(bool armState)
     mavlink_message_t message;
     mavlink_msg_command_long_encode(1, 0, &message, &com);
     send_mavlink_message(&message);
+}
+
+void MavlinkInterface::SetOffboardMode()
+{
+    mavlink_command_long_t cmd = {};
+    cmd.target_system    = 1;
+    cmd.target_component = 1;
+    cmd.command          = MAV_CMD_DO_SET_MODE;
+    cmd.confirmation     = 1;
+
+    cmd.param1 = MAV_MODE_FLAG_CUSTOM_MODE_ENABLED;
+    cmd.param2 = 6;
+    cmd.param3 = 0;  // sub-mode (not used)
+    cmd.param4 = 0;
+
+    std::cout << "Requesting OFFBOARD mode" << std::endl;
+
+    mavlink_message_t msg;
+    mavlink_msg_command_long_encode(1, 0, &msg, &cmd);
+    send_mavlink_message(&msg);
+}
+
+void MavlinkInterface::SendOffboardSetpoint(float x, float y, float z)
+{
+    mavlink_set_position_target_local_ned_t sp = {};
+    
+    sp.target_system    = 1;
+    sp.target_component = 1;
+    sp.coordinate_frame = MAV_FRAME_LOCAL_NED;
+
+    sp.type_mask =
+        MAVLINK_MSG_SET_POSITION_TARGET_LOCAL_NED_IGNORE_VX |
+        MAVLINK_MSG_SET_POSITION_TARGET_LOCAL_NED_IGNORE_VY |
+        MAVLINK_MSG_SET_POSITION_TARGET_LOCAL_NED_IGNORE_VZ |
+        MAVLINK_MSG_SET_POSITION_TARGET_LOCAL_NED_IGNORE_AFX |
+        MAVLINK_MSG_SET_POSITION_TARGET_LOCAL_NED_IGNORE_AFY |
+        MAVLINK_MSG_SET_POSITION_TARGET_LOCAL_NED_IGNORE_AFZ |
+        MAVLINK_MSG_SET_POSITION_TARGET_LOCAL_NED_IGNORE_YAW |
+        MAVLINK_MSG_SET_POSITION_TARGET_LOCAL_NED_IGNORE_YAW_RATE;
+
+    sp.x = x;
+    sp.y = y;
+    sp.z = z;   // NED: negative = up
+
+    mavlink_message_t msg;
+    mavlink_msg_set_position_target_local_ned_encode(
+        1, 0, &msg, &sp);
+
+    send_mavlink_message(&msg);
 }
 
