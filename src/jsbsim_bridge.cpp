@@ -88,6 +88,8 @@ JSBSimBridge::JSBSimBridge(JSBSim::FGFDMExec *fdmexec, ConfigurationParser &cfg)
   }
 
   _actuators = std::make_unique<ActuatorPlugin>(_fdmexec);
+  _px4comms = std::make_unique<px4comm>(_fdmexec);
+
   _actuators->SetActuatorConfigs(config);
   _realtime_factor = _cfg.getRealtimeFactor();
 }
@@ -199,7 +201,9 @@ void JSBSimBridge::Run() {
     _mavlink_interface->UpdateIMU(_imu_sensor->getData());
 }
     // Send Mavlink HIL_SENSOR message
-    _mavlink_interface->SendSensorMessages(simtime * 1e6);
+
+    Eigen::Vector4d jsbsim_actuators = _px4comms->getActuatorsFromJSBSim();
+    _mavlink_interface->SendActuatorMsgs(jsbsim_actuators);
 
 
   // Receive and handle actuator controls
@@ -210,16 +214,18 @@ void JSBSimBridge::Run() {
 //  }
   //_mavlink_interface->pollForMAVLinkMessages();
   //_mavlink_interface->pollFromGcsAndSdk();
-  _mavlink_interface->GetArmedState();
+    bool armState = _px4comms->getArmState();
+    _mavlink_interface->SendArmedState(armState);
  // Eigen::VectorXd actuator_controls = _mavlink_interface->GetActuatorControls();
-  Eigen::Vector3d AttitudeMAV = _mavlink_interface->GetIMU();
-  Eigen::Vector3d accelMAV = _mavlink_interface->imuaccel();
-  Eigen::Vector3d gpsMAV = _mavlink_interface->Getgps();
+    Eigen::Vector3d AttitudeMAV = _mavlink_interface->GetIMU();
+    Eigen::Vector3d accelMAV = _mavlink_interface->imuaccel();
+    Eigen::Vector3d gpsMAV = _mavlink_interface->Getgps();
     Eigen::Vector3d airspeedMAV = _mavlink_interface->Getairspeed();
 //  if (actuator_controls.size() >= 16) {
 //    _actuators->SetActuatorCommands(actuator_controls);
 //  }
-  _actuators->SetCommandToProperty2(AttitudeMAV,gpsMAV,airspeedMAV,accelMAV);
+  _px4comms->CommandToProperty(AttitudeMAV,gpsMAV,airspeedMAV,accelMAV);
+  //_actuators->SetCommandToProperty2(AttitudeMAV,gpsMAV,airspeedMAV,accelMAV);
   _result = _fdmexec->Run();
 
   auto step_stop_time = std::chrono::system_clock::now();

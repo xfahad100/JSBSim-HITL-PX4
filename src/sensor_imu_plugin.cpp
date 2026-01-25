@@ -78,7 +78,6 @@ SensorData::Imu SensorImuPlugin::getData() {
   Eigen::Vector3d accel = getAccelFromJSBSim();
  //std::cout << accel <<std::endl; //before adding noise
   Eigen::Vector3d gyro = getGyroFromJSBSim();
-  Eigen::Vector4d out = getOUTFromJSBSim();
   //addNoise(&accel, &gyro, dt);
 //Eigen::Vector3d imu =  _mavlink_interface2->GetIMU();
 //_sim_ptr->SetPropertyValue("attitude/theta-deg", imu[0]);
@@ -86,7 +85,6 @@ SensorData::Imu SensorImuPlugin::getData() {
   SensorData::Imu data;  //defining Imu as data
   data.accel_b = accel;  //accessing data in imu struct
   data.gyro_b = gyro;
-  data.out_b = out;
   _last_sim_time = sim_time;
   return data;
 }
@@ -101,7 +99,7 @@ Eigen::Vector3d SensorImuPlugin::getAccelFromJSBSim() {
 }
 
 Eigen::Vector3d SensorImuPlugin::getGyroFromJSBSim() {
-  double x = _sim_ptr->GetPropertyValue("pixhawk/arming");
+  double x = _sim_ptr->GetPropertyValue(_jsb_gyro_x);
   double y = _sim_ptr->GetPropertyValue(_jsb_gyro_y);
   double z = _sim_ptr->GetPropertyValue(_jsb_gyro_z);
 //std::cout <<z<<std::endl;
@@ -113,17 +111,6 @@ Eigen::Vector3d SensorImuPlugin::getGyroFromJSBSim() {
  //T_RC = _sim_ptr->GetPropertyValue("fcs/rudder-cmd-norm");
   //std::cout << "TrCMD::  " << T_RC<<endl;
   return Eigen::Vector3d(x, y, z);
-}
-
-Eigen::Vector4d SensorImuPlugin::getOUTFromJSBSim() {
-  double x = _sim_ptr->GetPropertyValue("fcs/elevator-pos-rad");
-  double y = _sim_ptr->GetPropertyValue("fcs/left-aileron-pos-rad");
-  double z = _sim_ptr->GetPropertyValue("fcs/rudder-pos-rad");
-  double w = _sim_ptr->GetPropertyValue("fcs/throttle-cmd-norm[0]");
-// std::cout << "elv::  " << x<<endl;
-//  std::cout << "ail::  " << y<<endl;
-//  std::cout << "rud::  " << z<<endl;
-  return Eigen::Vector4d(x, y, z, w);
 }
 
 //void SensorImuPlugin::getIMUfromMAV(float &_xgyro, float &_ygyro, float &_zgyro) {

@@ -49,6 +49,7 @@
 #include "sensor_gps_plugin.h"
 #include "sensor_imu_plugin.h"
 #include "sensor_mag_plugin.h"
+#include "px4_comm.h"
 #include <FGFDMExec.h>
 #include <initialization/FGInitialCondition.h>
 #include <input_output/FGScript.h>
@@ -79,6 +80,7 @@ class JSBSimBridge {
   std::unique_ptr<SensorMagPlugin> _mag_sensor;
   std::unique_ptr<SensorAirspeedPlugin> _airspeed_sensor;
   std::unique_ptr<ActuatorPlugin> _actuators;
+  std::unique_ptr<px4comm> _px4comms;
 
   double _dt{0.02};
   double _realtime_factor{1.0};

@@ -58,7 +58,6 @@ class ActuatorPlugin {
   ActuatorPlugin(JSBSim::FGFDMExec *jsbsim);
   ~ActuatorPlugin();
   bool SetActuatorCommands(const Eigen::VectorXd &actuator_commands);
-  bool SetCommandToProperty2(Eigen::Vector3d &AttitudeMAV, Eigen::Vector3d &gpsMAV, Eigen::Vector3d &airspeedMAV, Eigen::Vector3d &accelMAV);
   bool SetActuatorConfigs(const TiXmlHandle &config);
 
  private:

@@ -60,29 +60,6 @@ bool ActuatorPlugin::SetCommandToProperty(float value, std::string property) {
   return true;
 }
 
-bool ActuatorPlugin::SetCommandToProperty2(Eigen::Vector3d &AttitudeMAV, Eigen::Vector3d &gpsMAV,  Eigen::Vector3d &airspeedMAV, Eigen::Vector3d &accelMAV) {
-
-
-   // std::cout << "servo1::  " <<airspeedMAV[0] <<endl;
-    //std::cout << "servo2:  " <<airspeedMAV[1] <<endl;
-     _sim_ptr->SetPropertyValue("pixhawk/sensor/airspeed", airspeedMAV[0]);
-     _sim_ptr->SetPropertyValue("pixhawk/sensor/hdotmav", airspeedMAV[1]);
-     _sim_ptr->SetPropertyValue("pixhawk/sensor/alt", airspeedMAV[2]);
-
-    _sim_ptr->SetPropertyValue("pixhawk/sensor/hdotcalc", gpsMAV[0]);
-    _sim_ptr->SetPropertyValue("pixhawk/sensor/lon", gpsMAV[1]);
-    _sim_ptr->SetPropertyValue("pixhawk/sensor/alt", gpsMAV[2]);
-   //temp
-     _sim_ptr->SetPropertyValue("pixhawk/sensor/theta-deg", AttitudeMAV[0]);
-    _sim_ptr->SetPropertyValue("pixhawk/sensor/phi-deg", AttitudeMAV[1]);
-    _sim_ptr->SetPropertyValue("pixhawk/sensor/psi-deg", AttitudeMAV[2]);
-
-    //_sim_ptr->SetPropertyValue("pixhawk/sensor/theta-deg", accelMAV[0]);
-   //_sim_ptr->SetPropertyValue("pixhawk/sensor/phi-deg", accelMAV[1]);
-   //_sim_ptr->SetPropertyValue("pixhawk/sensor/psi-deg", accelMAV[2]);
-  return true;
-}
-
 bool ActuatorPlugin::SetActuatorConfigs(const TiXmlHandle &config) {
   TiXmlElement *actuators = config.FirstChild("actuators").Element();
 

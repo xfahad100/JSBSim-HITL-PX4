@@ -93,7 +93,6 @@ namespace SensorData {
 struct Imu {
   Eigen::Vector3d accel_b;
   Eigen::Vector3d gyro_b;
-  Eigen::Vector4d out_b;
 };
 
 struct Barometer {
@@ -142,7 +141,7 @@ class MavlinkInterface {
   void open();
   void close();
   void Load();
-  void SendSensorMessages(int time_usec);
+  void SendActuatorMsgs(Eigen::Vector4d jsbsim_actuators);
   void SendGpsMessages(const SensorData::Gps &data);
   void UpdateBarometer(const SensorData::Barometer &data);
   void UpdateAirspeed(const SensorData::Airspeed &data);
@@ -152,8 +151,7 @@ class MavlinkInterface {
   Eigen::Vector3d Getairspeed();
   Eigen::Vector3d GetIMU();
   Eigen::Vector3d imuaccel();
-  bool GetArmedState();
-  int armbool();
+  void SendArmedState(bool armstate);
   void onSigInt();
   inline bool GetReceivedFirstActuator() { return received_first_actuator_; }
   inline void SetBaudrate(int baudrate) { baudrate_ = baudrate; }
@@ -173,7 +171,6 @@ class MavlinkInterface {
 
  private:
   bool received_first_actuator_;
-  bool armed_;
   Eigen::Vector3d gps_input;
   Eigen::Vector3d airspeed;
   Eigen::Vector3d input_reference_2;
@@ -273,7 +270,6 @@ uint32_t current =0;
   Eigen::Vector3d mag_b_;
   Eigen::Vector3d accel_b_;
   Eigen::Vector3d gyro_b_;
-  Eigen::Vector4d out_b_;
   std::atomic<bool> gotSigInt_{false};
 
   double AoA, gamma, hdot, VelX, VelY, VelZ, vUVWmag;

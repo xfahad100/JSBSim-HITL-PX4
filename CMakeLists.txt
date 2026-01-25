@@ -70,6 +70,7 @@ add_executable(jsbsim_bridge
 			   src/geo_mag_declination.cpp
 			   src/mavlink_interface.cpp
 			   src/actuator_plugin.cpp
+			   src/px4_comm.cpp
 			   src/sensor_plugin.cpp
 			   src/sensor_airspeed_plugin.cpp
 			   src/sensor_baro_plugin.cpp

@@ -232,7 +232,7 @@ void MavlinkInterface::Load() {
   }
 }
 
-void MavlinkInterface::SendSensorMessages(int time_usec) {
+void MavlinkInterface::SendActuatorMsgs(Eigen::Vector4d out_raw) {
 
 
 
@@ -262,10 +262,10 @@ void MavlinkInterface::SendSensorMessages(int time_usec) {
 //std::cout << "rud::  " << out_b_[2]<<endl;
 
 
-  elevatorDefDeg = out_b_[0] * 57.3;
-  aileronDefDeg  = out_b_[1] * 57.3;
-  rudderDefDeg   = out_b_[2] * 57.3;
-  throttleDef    = out_b_[3];
+  elevatorDefDeg = out_raw[0] * 57.3;
+  aileronDefDeg  = out_raw[1] * 57.3;
+  rudderDefDeg   = out_raw[2] * 57.3;
+  throttleDef    = out_raw[3];
   elevatorDefPWM =  mapOneRangeToAnother(elevatorDefDeg,-15,15,1000,2000,2);
   aileronDefPWM  =  mapOneRangeToAnother(aileronDefDeg,-20,20,1000,2000,2);
   rudderDefPWM  =   mapOneRangeToAnother(rudderDefDeg, -20, 20, 1000, 2000, 2);
@@ -318,8 +318,6 @@ void MavlinkInterface::UpdateAirspeed(const SensorData::Airspeed &data) {
 void MavlinkInterface::UpdateIMU(const SensorData::Imu &data) {
   accel_b_ = data.accel_b;
   gyro_b_ = data.gyro_b;
-  out_b_ = data.out_b;
-
   imu_updated_ = true;
 }
 
@@ -735,7 +733,7 @@ void MavlinkInterface::parse_buffer(const boost::system::error_code &err, std::s
     {
         mavlink_heartbeat_t msghb;
         mavlink_msg_heartbeat_decode(&massg,&msghb);
-        armed_ = (msghb.base_mode & MAV_MODE_FLAG_SAFETY_ARMED);
+        bool armed_ = (msghb.base_mode & MAV_MODE_FLAG_SAFETY_ARMED);
     //std::cout << "armstate::  " << msghb.base_mode <<endl;
         break;
     }
@@ -858,25 +856,30 @@ Eigen::Vector3d MavlinkInterface::imuaccel() {
   return imuacc;
 }
 
-int MavlinkInterface::armbool(){
+void MavlinkInterface::SendArmedState(bool armState)
+{
+    static bool lastArmState = false;   // remembers previous state
 
-  int    armstate = gyro_b_[0];
-    return armstate;
-}
+    // Do nothing if state hasn't changed
+    if (armState == lastArmState) {
+        return;
+    }
 
-bool MavlinkInterface::GetArmedState() {
-   // flag=true;
-  mavlink_command_long_t com ={0};
+    lastArmState = armState;  // update state
+
+    mavlink_command_long_t com = {};
     com.target_system    = 1;
     com.target_component = 1;
     com.command          = MAV_CMD_COMPONENT_ARM_DISARM;
-    com.confirmation     = true;
-    com.param1           =gyro_b_[0];
-    com.param2           = 21196;
-//std::cout << "arm::  " <<gyro_b_[0] <<endl;
-    // Encode
+    com.confirmation     = 1;
+    com.param1           = armState ? 1.0f : 0.0f;   // arm / disarm
+    com.param2           = 21196;                   // force arm (PX4)
+
+    std::cout << "ARM STATE CHANGED -> "
+              << (armState ? "ARM" : "DISARM") << std::endl;
+
     mavlink_message_t message;
     mavlink_msg_command_long_encode(1, 0, &message, &com);
-   send_mavlink_message(&message);
-  return armed_;
+    send_mavlink_message(&message);
 }
+
