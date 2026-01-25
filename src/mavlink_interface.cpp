@@ -243,68 +243,27 @@ void MavlinkInterface::Load() {
   }
 }
 
-void MavlinkInterface::SendActuatorMsgs(Eigen::Vector4d out_raw) {
+void MavlinkInterface::SendActuatorMsgs(Eigen::Vector4d out_raw)
+{
+    // ----------------------------
+    // Send actuator control (OFFBOARD)
+    // ----------------------------
+    mavlink_set_actuator_control_target_t actuators;
+    actuators.target_system    = 1;
+    actuators.target_component = 1;
+    actuators.group_mlx        = 0; // flight control group
 
+    // Map [elevator, aileron, rudder, throttle] -> [roll, pitch, yaw, throttle]
+    actuators.controls[0] = out_raw[1]; // roll  = aileron
+    actuators.controls[1] = out_raw[0]; // pitch = elevator
+    actuators.controls[2] = out_raw[2]; // yaw   = rudder
+    actuators.controls[3] = out_raw[3]; // throttle
+    for (int i = 4; i < 8; i++)
+        actuators.controls[i] = 0.0f;
 
-
-// Pack the message
-//   mavlink_heartbeat_t heart;
-//    mavlink_message_t msght;
-//   heart.type=MAV_ODID_UA_TYPE_AEROPLANE;
-//   heart.autopilot=MAV_AUTOPILOT_GENERIC;
-
-// mavlink_msg_heartbeat_encode(1,0,&msght,&heart);
-//  send_mavlink_message(&msght);
-
-
-
-                   // mavlink_servo_output_raw_t serm2;
-                    //mavlink_msg_servo_output_raw_decode(&massg, &serm2);
-//                   usleep(25000);
-                    //std::cout << "servo1::  " << serm2.servo1_raw <<endl;
-
-//                    mavlink_msg_scaled_imu_decode(&massg , &imu1);
-//                   std::cout << "big::  " << imu1.zacc <<endl;
-  //              }
-//}
-//usleep(5000);
-//std::cout << "elev::  " << out_b_[0]<<endl;
-//std::cout << "ail::  " << out_b_[2]<<endl;
-//std::cout << "rud::  " << out_b_[2]<<endl;
-
-
-  elevatorDefDeg = out_raw[0] * 57.3;
-  aileronDefDeg  = out_raw[1] * 57.3;
-  rudderDefDeg   = out_raw[2] * 57.3;
-  throttleDef    = out_raw[3];
-  elevatorDefPWM =  mapOneRangeToAnother(elevatorDefDeg,-15,15,1000,2000,2);
-  aileronDefPWM  =  mapOneRangeToAnother(aileronDefDeg,-20,20,1000,2000,2);
-  rudderDefPWM  =   mapOneRangeToAnother(rudderDefDeg, -20, 20, 1000, 2000, 2);
-  throttleDefPWM  =   mapOneRangeToAnother(throttleDef, 0.0, 1.0, 1000, 2000, 2);
-
-  std::cout << "pwm::  " << throttleDef<<endl;
-  std::cout << "ailerpwm::  " << throttleDefPWM<<endl;
-
-mavlink_rc_channels_override_t rc_override; //Msg to override rc channels
-mavlink_message_t msg_rc;
-rc_override.chan1_raw=aileronDefPWM;
-rc_override.chan2_raw=elevatorDefPWM;  //servo port2
-rc_override.chan3_raw=throttleDefPWM;  //throttle
-rc_override.chan4_raw=rudderDefPWM;  //servo port1
-rc_override.chan5_raw=0;
-rc_override.chan6_raw=0;
-rc_override.chan7_raw=0;
-rc_override.chan8_raw=0;
-rc_override.target_system = 1; // Send command to MAV 001
-rc_override.target_component = 1;//PX_COMP_ID_ALL;
-mavlink_msg_rc_channels_override_encode(1, 0, &msg_rc, &rc_override);
-send_mavlink_message(&msg_rc);
-//usleep(500);
-
-
-//std::cout << " servo 1::  " << servo.servo1_raw <<endl;
-
-
+    mavlink_message_t msg;
+    mavlink_msg_set_actuator_control_target_encode(1, 0, &msg, &actuators);
+    send_mavlink_message(&msg);
 }
 
 void MavlinkInterface::SendGpsMessages(const SensorData::Gps &data) {
