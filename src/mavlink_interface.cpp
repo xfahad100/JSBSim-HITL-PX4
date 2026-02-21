@@ -262,6 +262,8 @@ void MavlinkInterface::SendActuatorMsgs(Eigen::Vector4d out_raw) {
 //std::cout << "rud::  " << out_b_[2]<<endl;
 
 
+
+
   elevatorDefDeg = out_raw[0] * 57.3;
   aileronDefDeg  = out_raw[1] * 57.3;
   rudderDefDeg   = out_raw[2] * 57.3;
@@ -286,7 +288,7 @@ rc_override.chan7_raw=UINT16_MAX;
 rc_override.chan8_raw=UINT16_MAX;
 rc_override.target_system = 1; // Send command to MAV 001
 rc_override.target_component = MAV_COMP_ID_AUTOPILOT1;//PX_COMP_ID_ALL;
-mavlink_msg_rc_channels_override_encode(1, 0, &msg_rc, &rc_override);
+mavlink_msg_rc_channels_override_encode(255, 0, &msg_rc, &rc_override);
 send_mavlink_message(&msg_rc);
 //usleep(500);
 
@@ -882,4 +884,19 @@ void MavlinkInterface::SendArmedState(bool armState)
     mavlink_msg_command_long_encode(1, 0, &message, &com);
     send_mavlink_message(&message);
 }
+
+  void MavlinkInterface::SendHeartbeat()
+  {
+    mavlink_heartbeat_t hb;
+    mavlink_message_t msg;
+
+    hb.type = MAV_TYPE_GCS;
+    hb.autopilot = MAV_AUTOPILOT_INVALID;
+    hb.base_mode = 0;
+    hb.custom_mode = 0;
+    hb.system_status = MAV_STATE_ACTIVE;
+
+    mavlink_msg_heartbeat_encode(1, 0, &msg, &hb);
+    send_mavlink_message(&msg);
+  }
 

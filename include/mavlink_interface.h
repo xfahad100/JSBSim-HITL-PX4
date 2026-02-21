@@ -143,6 +143,7 @@ class MavlinkInterface {
   void Load();
   void SendActuatorMsgs(Eigen::Vector4d jsbsim_actuators);
   void SendGpsMessages(const SensorData::Gps &data);
+  void SendHeartbeat();
   void UpdateBarometer(const SensorData::Barometer &data);
   void UpdateAirspeed(const SensorData::Airspeed &data);
   void UpdateIMU(const SensorData::Imu &data);
