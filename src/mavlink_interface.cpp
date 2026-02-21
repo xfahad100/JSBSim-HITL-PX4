@@ -272,7 +272,7 @@ void MavlinkInterface::SendActuatorMsgs(Eigen::Vector4d out_raw) {
   throttleDefPWM  =   mapOneRangeToAnother(throttleDef, 0.0, 1.0, 1000, 2000, 2);
 
   std::cout << "pwm::  " << throttleDef<<endl;
-  std::cout << "ailerpwm::  " << throttleDefPWM<<endl;
+  std::cout << "ailerpwm::  " << aileronDefPWM<<endl;
 
 mavlink_rc_channels_override_t rc_override; //Msg to override rc channels
 mavlink_message_t msg_rc;
@@ -280,12 +280,12 @@ rc_override.chan1_raw=aileronDefPWM;
 rc_override.chan2_raw=elevatorDefPWM;  //servo port2
 rc_override.chan3_raw=throttleDefPWM;  //throttle
 rc_override.chan4_raw=rudderDefPWM;  //servo port1
-rc_override.chan5_raw=0;
-rc_override.chan6_raw=0;
-rc_override.chan7_raw=0;
-rc_override.chan8_raw=0;
+rc_override.chan5_raw=UINT16_MAX;
+rc_override.chan6_raw=UINT16_MAX;
+rc_override.chan7_raw=UINT16_MAX;
+rc_override.chan8_raw=UINT16_MAX;
 rc_override.target_system = 1; // Send command to MAV 001
-rc_override.target_component = 1;//PX_COMP_ID_ALL;
+rc_override.target_component = MAV_COMP_ID_AUTOPILOT1;//PX_COMP_ID_ALL;
 mavlink_msg_rc_channels_override_encode(1, 0, &msg_rc, &rc_override);
 send_mavlink_message(&msg_rc);
 //usleep(500);

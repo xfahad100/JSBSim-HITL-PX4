@@ -65,8 +65,8 @@ static const uint32_t kDefaultGCSUdpPort = 14550;
 static const uint32_t kDefaultSDKUdpPort = 14540;
 //float _xgyro, _ygyro, _zgyro;
 using lock_guard = std::lock_guard<std::recursive_mutex>;
-static constexpr auto kDefaultDevice = "/dev/ttyUSB0";
-static constexpr auto kDefaultBaudRate = 57600;
+static constexpr auto kDefaultDevice = "/dev/ttyACM0";
+static constexpr auto kDefaultBaudRate = 115200;
 
 //! Maximum buffer size with padding for CRC bytes (280 + padding)
 static constexpr ssize_t MAX_SIZE = MAVLINK_MAX_PACKET_LEN + 16;
