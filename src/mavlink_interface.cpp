@@ -43,8 +43,8 @@ MavlinkInterface::MavlinkInterface()
       sdk_addr_("INADDR_ANY"),
       io_service(),
       serial_dev(io_service),
-      device_(kDefaultDevice),
-      baudrate_(kDefaultBaudRate),
+      device_(),
+      baudrate_(),
       tx_q{},
       rx_buf{},
       imu_updated_(false),
@@ -608,7 +608,7 @@ void MavlinkInterface::open() {
         boost::asio::serial_port_base::flow_control(boost::asio::serial_port_base::flow_control::none));
     std::cout << "Opened serial device " << device_ << "\n";
   } catch (boost::system::system_error &err) {
-    std::cerr << "Error opening serial device: " << err.what() << "\n";
+    std::cerr << "Error opening serial device: " << device_ << "\n";
   }
 }
 
